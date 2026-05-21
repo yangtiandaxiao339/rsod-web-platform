@@ -1,32 +1,63 @@
+import sys
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+BACKEND_DIR = Path(__file__).resolve().parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from app.api.detection import router as detection_router
+from app.api.model import router as model_router
+from app.config import settings
+from app.utils.file_utils import ensure_directories
+
+ensure_directories()
 
 app = FastAPI(
-    title="遥感目标智能检测平台",
-    description="基于YOLO11的遥感图像目标检测系统API，支持飞机、油罐、立交桥、操场等目标检测",
-    version="1.0.0"
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="RSOD detection backend with dataset conversion, training, and model management support.",
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
-@app.get("/health", tags=["健康检查"])
+app.mount("/static", StaticFiles(directory=str(settings.STATIC_DIR)), name="static")
+app.include_router(detection_router, prefix="/api")
+app.include_router(model_router, prefix="/api")
+
+
+@app.get("/")
+async def root():
+    return {
+        "name": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "running",
+    }
+
+
+@app.get("/health")
 async def health_check():
     return {
         "status": "healthy",
-        "service": "rsod-web-platform",
-        "version": "1.0.0"
+        "version": settings.APP_VERSION,
     }
 
-@app.get("/", tags=["根路径"])
-async def root():
-    return {"message": "欢迎使用遥感目标智能检测平台"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    uvicorn.run(
+        "main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.DEBUG,
+    )

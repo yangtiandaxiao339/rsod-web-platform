@@ -1,6 +1,19 @@
 import { createApp } from "vue";
+import ElementPlus from "element-plus";
+import * as ElementPlusIconsVue from "@element-plus/icons-vue";
+import "element-plus/dist/index.css";
 import App from "./App.vue";
-import router from "./router/index.js"; // 引⼊路由
+import router from "./router";
+import pinia from "./stores";
+import "./styles/variables.css";
+
 const app = createApp(App);
-app.use(router); // 启⽤路由
+
+for (const [name, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(name, component);
+}
+
+app.use(ElementPlus);
+app.use(pinia);
+app.use(router);
 app.mount("#app");

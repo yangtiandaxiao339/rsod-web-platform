@@ -14,6 +14,32 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()],
     }),
   ],
+  build: {
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/element-plus") || id.includes("@element-plus/icons-vue")) {
+            return "element-plus";
+          }
+
+          if (
+            id.includes("node_modules/vue-router") ||
+            id.includes("node_modules/pinia") ||
+            id.includes("node_modules/vue")
+          ) {
+            return "vue-runtime";
+          }
+
+          if (id.includes("node_modules/axios")) {
+            return "network";
+          }
+
+          return undefined;
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

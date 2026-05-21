@@ -1,20 +1,25 @@
 <template>
-  <!-- 路由出⼝ → ⻚⾯会在这⾥显示 -->
-  <router-view />
+  <router-view v-if="isAuthPage" />
+  <MainLayout v-else>
+    <template #sidebar>
+      <Sidebar />
+    </template>
+    <template #header>
+      <Header />
+    </template>
+    <template #content>
+      <router-view />
+    </template>
+  </MainLayout>
 </template>
-<script setup></script>
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 30px;
-}
-</style>
+
+<script setup>
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import Header from "./components/Header.vue";
+import Sidebar from "./components/Sidebar.vue";
+import MainLayout from "./layouts/MainLayout.vue";
+
+const route = useRoute();
+const isAuthPage = computed(() => route.meta.layout === "auth");
+</script>
